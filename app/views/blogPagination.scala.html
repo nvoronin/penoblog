@@ -1,0 +1,10 @@
+@(currentPage: Int, totalPages: Int)
+
+<ul class="pager">
+    @if(currentPage < totalPages) {
+        <li class="previous"><a href='@routes.Blog.list(currentPage+1)'>&larr; Older </a></li>
+    }
+    @if(currentPage > 1) {
+        <li class="next"><a href='@routes.Blog.list(currentPage-1)'> Newer &rarr; </a></li>
+    }
+</ul>

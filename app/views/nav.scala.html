@@ -1,0 +1,35 @@
+@(section: String)
+
+@menuItems = @{Seq(
+("wudra", "home", routes.Application.index),
+("blog", "Blog", routes.Blog.list(1))
+)}
+
+<!-- Fixed navbar -->
+<div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">WUDRA</a>
+        </div>
+        <div class="collapse navbar-collapse">
+            <ul class="nav navbar-nav">
+
+                @menuItems.map {
+                    case (key, title, _) if section.capitalize.contains(key.capitalize) => {
+                    <li class="active">
+                        <a href="#">@title</a>
+                    </li>
+                    }
+                    case (key, title, url) => {
+                    <li><a href="@url">@title</a></li>
+                    }
+                }
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div>
+</div>

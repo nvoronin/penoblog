@@ -1,0 +1,14 @@
+@(posts: List[BlogPost], currentPage: Int, totalPages: Int)
+
+@import helper._
+
+@main("Blog") {
+    @posts.map { post =>
+     <div class="blogPost">
+         <h3><a href='@routes.Blog.render(post.handle)'>@post.title</a></h3>
+         <p>@Html(post.summary)</p>
+     </div>
+    }
+
+    @blogPagination(currentPage, totalPages)
+}

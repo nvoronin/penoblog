@@ -1,0 +1,35 @@
+@(posts: List[BlogPost], postForm: Form[(String, String, String, String, String)])
+
+@import helper._
+
+@main("Blog") {
+<div class="center-row">
+    <h1>@posts.size task(s)</h1>
+
+    <ul>
+        @posts.map { post =>
+        <li>
+            @form(routes.Blog.render(post.handle)) {
+                @post.title
+            }
+            <p>@post.content</p>
+
+            @form(routes.Blog.delete(post.id.toString)) {
+                <input type="submit" value="Delete">
+            }
+        </li>
+        }
+    </ul>
+
+    <h2>Add a new task</h2>
+
+    @form(routes.Blog.newPost) {
+        @inputText(postForm("handler"))
+        @inputText(postForm("title"))
+        @inputText(postForm("content"))
+        @inputText(postForm("tags"))
+
+        <input type="submit" value="Create">
+    }
+</div>
+}

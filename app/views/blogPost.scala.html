@@ -1,0 +1,10 @@
+@(post: BlogPost)
+
+@import helper._
+
+@main(post.title) {
+    <div class="blogPost">
+        <h1>@post.title</h1>
+        <div class="blogContent">@Html(post.content)</div>
+    </div>
+}
