@@ -7,12 +7,14 @@ GET     /                           controllers.Application.index
 
 # Blog
 GET     /blog                       controllers.Blog.list(page: Int ?= 1)
-GET     /blog/                       controllers.Blog.list(page: Int ?= 1)
+GET     /blog/                      controllers.Blog.list(page: Int ?= 1)
 GET     /blog/page/:page            controllers.Blog.list(page: Int)
 GET     /blog/:handle               controllers.Blog.render(handle: String)
-POST    /new                   controllers.Blog.newPost
-GET     /new                   controllers.Blog.newPost
+POST    /new                        controllers.Blog.newPost
+GET     /new                        controllers.Blog.newPost
 GET     /blog/delete/:id            controllers.Blog.delete(id: String)
+GET     /blog/edit/:id              controllers.Blog.edit(id: Long)
+POST    /blog/update                controllers.Blog.update
 
 # Admin
 GET     /login                  controllers.Auth.login

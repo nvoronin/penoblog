@@ -20,7 +20,10 @@ import play.api.Play.current
  *  content is an html (?) formatted content
  *  published date is a dat when particular post has been published, used to sort posts by time
  */
-case class BlogPost(id: Long, handle: String, title: String, summary: String, content: String, published: DateTime)
+case class BlogPost(id: Option[Long], handle: String, title: String, summary: String, content: String, published: Option[DateTime], tags: String) {
+  def getTagList =
+    tags.split(",").map(s => s.trim)
+}
 
 /**
  * Created by nickvoronin on 1/28/15.
@@ -36,7 +39,7 @@ object BlogPost {
     get[String]("summary") ~
     get[String]("content") ~
     get[DateTime]("published") map {
-      case id~handler~title~summary~content~published => BlogPost(id, handler, title, summary, content, published)
+      case id~handler~title~summary~content~published => BlogPost(Some(id), handler, title, summary, content, Some(published), "")
     }
   }
 
@@ -69,28 +72,48 @@ object BlogPost {
 
   /**
    * Creates a blog posts with specified fields
-   * @param handler
-   * @param title
-   * @param content
-   * @param tags
+   * @param post
    * @return
    */
-  def create(handler: String, title: String, summary: String, content: String, tags: Seq[String]) =
+  def create(post: BlogPost) =
     DB.withConnection { implicit c => {
         val ids:Seq[Int] = SQL("INSERT INTO blog_post (id,title,summary,handler,content,published) VALUES (NULL, {title}, {summary}, {handler}, {content}, CURRENT_TIMESTAMP);").on(
-          'title -> title,
-          'summary -> summary,
-          'handler -> handler,
-          'content -> content
+          'title -> post.title,
+          'summary -> post.summary,
+          'handler -> post.handle,
+          'content -> post.content
         ).executeInsert({get[Int]("GENERATED_KEY") map { GENERATED_KEY => GENERATED_KEY }} *)
 
         val sql = SQL("INSERT INTO blog_post_tag (blog_post_id, tag) values({id}, {tag})")
-        val batchInsert = (sql.asBatch /: tags)(
+        val batchInsert = (sql.asBatch /: post.getTagList)(
           (sql, t) => ( sql.addBatchParams(ids.head, t) )
         )
         batchInsert.execute()
       }
     }
+
+  def update(post: BlogPost) =
+    DB.withConnection { implicit c => {
+      SQL("UPDATE blog_post SET title = {title} ,summary = {summary}," +
+        "handler = {handler}, content = {content} WHERE id = {id};").on(
+        'id -> post.id, //.getOrElse(0),
+        'title -> post.title,
+        'summary -> post.summary,
+        'handler -> post.handle,
+        'content -> post.content
+      ).executeUpdate();
+
+      SQL("DELETE FROM blog_post_tag WHERE blog_post_id = {id}").on(
+          'id -> post.id
+        ).executeUpdate();
+
+      val sql = SQL("INSERT INTO blog_post_tag (blog_post_id, tag) values({id}, {tag})")
+      val batchInsert = (sql.asBatch /: post.getTagList)(
+        (sql, t) => ( sql.addBatchParams(post.id, t) )
+      )
+      batchInsert.execute()
+    }
+  }
 
   /**
    * Deletes a blog post with specified id
@@ -110,13 +133,13 @@ object BlogPost {
    * @return
    */
   def byPage(pageNum: Int, pageSize: Int) =
-  if (pageNum < 0 || pageSize <= 0 || pageSize > 20)
-    Nil
-  else
-    DB.withConnection { implicit c =>
-      SQL("select * from blog_post order by published desc limit {skipRecords}, {size}")
-        .on('size -> pageSize, 'skipRecords -> (pageSize * pageNum)).as(blogPost *)
-    }
+    if (pageNum < 0 || pageSize <= 0 || pageSize > 20)
+      Nil
+    else
+      DB.withConnection { implicit c =>
+        SQL("select * from blog_post order by published desc limit {skipRecords}, {size}")
+          .on('size -> pageSize, 'skipRecords -> (pageSize * pageNum)).as(blogPost *)
+      }
 
   def totalBlogPosts:Int = DB.withConnection { implicit c =>
     SQL("select count(id) TOTAL from blog_post").as({get[Int]("TOTAL") map { total => total }} *).head
@@ -130,4 +153,13 @@ object BlogPost {
        SQL("select * from blog_post where handler={handler} LIMIT 1")
          .on('handler -> handle).as(blogPost *)
      }
+
+  def byId(id: Long):List[BlogPost] =
+    if(id <= 0)
+      Nil
+    else
+      DB.withConnection { implicit c =>
+        SQL("select * from blog_post where id={id} LIMIT 1")
+          .on('id -> id).as(blogPost *)
+      }
 }

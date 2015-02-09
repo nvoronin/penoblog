@@ -1,11 +1,25 @@
-@(posts: List[BlogPost], currentPage: Int, totalPages: Int)
+@(posts: List[BlogPost], currentPage: Int, totalPages: Int, authenticated: Boolean)
 
 @import helper._
 
 @main("Blog") {
     @posts.map { post =>
      <div class="blogPost">
-         <h3><a href='@routes.Blog.render(post.handle)'>@post.title</a></h3>
+         <h3>
+             @if(authenticated){
+                <a class="btn btn-default" role="button" href="@routes.Blog.edit(post.id.getOrElse(0))">
+                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span> Edit
+                </a>
+             }
+             <a href='@routes.Blog.render(post.handle)'>@post.title</a>
+             @if(authenticated){
+                 <a href='@routes.Blog.delete(post.id.toString)'>
+                     <button type="button" class="btn btn-danger">
+                         <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                     </button>
+                 </a>
+             }
+         </h3>
          <p>@Html(post.summary)</p>
      </div>
     }

@@ -1,18 +1,22 @@
-@(postForm: Form[(String, String, String, String, String)])
+@(postForm: Form[BlogPost])
 
 @import helper._
 
 @main("New Post") {
 <div class="center-row">
     @form(routes.Blog.newPost) {
+        @inputText(
+            postForm("id"),
+            '_label -> "id",
+            'style -> "display: none"
+        )
         @inputText(postForm("handler"))
         @inputText(postForm("title"))
         @textarea(postForm("summary"))
         @textarea(postForm("content"))
         @inputText(postForm("tags"))
-        <input type="submit" value="Create">
+        <input type="submit" value="Save">
     }
-
     <script src="//tinymce.cachefly.net/4.1/tinymce.min.js"></script>
     <script>tinymce.init({selector:'textarea'});</script>
 </div>
